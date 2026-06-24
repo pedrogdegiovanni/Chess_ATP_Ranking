@@ -231,6 +231,85 @@ RECS = [
 # Filter out books already read
 RECS = [r for r in RECS if r["title"].lower() not in read_titles_lower]
 
+# ── 10. Language by year (Spanish vs English) ─────────────────────────────────
+def is_spanish(t):
+    if re.search(r'[ñáéíóú¿¡]', t): return True
+    w = set(t.lower().split())
+    sp = {'el','la','los','las','de','del','un','una','y','en','que','por','para','con','su','al'}
+    return len(w & sp) >= 2
+
+lang_by_year = defaultdict(lambda: [0, 0])
+for b in all_books:
+    if b["year"] and isinstance(b["title"], str):
+        lang_by_year[b["year"]][0 if is_spanish(b["title"]) else 1] += 1
+
+lang_years  = sorted(y for y in lang_by_year if 2001 <= y <= 2026)
+lang_es     = [lang_by_year[y][0] for y in lang_years]
+lang_en     = [lang_by_year[y][1] for y in lang_years]
+lang_pct_es = [round(100 * lang_by_year[y][0] / max(1, sum(lang_by_year[y]))) for y in lang_years]
+
+# ── 11. Profile page data ─────────────────────────────────────────────────────
+MILESTONES = [
+    {"year": "c.2001–2007", "icon": "📚", "label": "Childhood & teens in Argentina",
+     "detail": "Harry Potter (via Scholastic/Salamandra), Mafalda, early Fantasy. The bedrock habits form."},
+    {"year": "c.2008–2010", "icon": "🎭", "label": "Late secondary school",
+     "detail": "Greek tragedies, Wilde, Lorca, Descartes, Ortega y Gasset — a student being pushed through a humanities curriculum."},
+    {"year": "c.2009–2015", "icon": "🎓", "label": "Economics degree, UNC Córdoba",
+     "detail": "Sustained Economics wave with a clear Austrian/libertarian school — Hayek, Mises, Liberty Fund, Union Editorial. 'Economicas UNC' as publisher in 2013 pins the institution."},
+    {"year": "c.2011–2012", "icon": "🏛️", "label": "Trip or stay in Spain (Barcelona)",
+     "detail": "An art wave of unusual specificity: Gaudí, Park Güell, Sagrada Família symbolism, Miró, Dalí — all published by Catalan imprints (Triangle Postals). Not a casual tourist list."},
+    {"year": "2015–2016", "icon": "🗳️", "label": "Argentina's 2016 political change",
+     "detail": "Two books specifically about Macri's PRO party (Mundo Pro, Cambiamos) read in January 2016 — paying close attention to the political shift right before leaving."},
+    {"year": "c.2016", "icon": "✈️", "label": "Migration #1 — Argentina → abroad (likely Europe)",
+     "detail": "Argentine/Spanish publishers vanish; British imprints flood in. The first migration. Spanish as a reading language drops from ~25% to near zero, never fully recovering."},
+    {"year": "c.2017", "icon": "🔍", "label": "Master's degree",
+     "detail": "Sherlock Holmes complete run, Pratchett, King, Lovecraft — reading for pleasure in a new country, in a new language. The publisher record shows distinctly British book-buying habits."},
+    {"year": "c.2018–2019", "icon": "🗽", "label": "Migration #2 — to the United States",
+     "detail": "Barnes & Noble appears in 2018. By 2019: MIT Press, Princeton, Harvard, Norton, Henry Holt. Simultaneously starts reading American founding history (Hamilton, Andrew Jackson, The British Are Coming) — classic immigrant integration."},
+    {"year": "c.2019–2020", "icon": "📐", "label": "PhD / career specialization",
+     "detail": "Graduate-level international trade textbooks (MIT, Princeton), then a pivot to Antitrust and Regulatory Economics: railroad economics, port economics, Lectures on Antitrust Economics. The specialty locks in."},
+    {"year": "2020–2022", "icon": "🏠", "label": "COVID lockdown — reading explosion",
+     "detail": "79 → 86 → 117 books/year. Starts D&D campaign (12 manuals in 2021), takes up piano (Faber Adult Piano Adventures), learns American football, reads the complete Borges in Spanish — a homesick reconnection to Argentina."},
+    {"year": "2023", "icon": "🔭", "label": "Buys a telescope",
+     "detail": "Five astronomy books in one year: Turn Left at Orion, Binocular Highlights, Cosmos, Stargazing for Dummies, Under Alien Skies. The purchase is obvious in the bibliography."},
+    {"year": "2024", "icon": "🏡", "label": "First home",
+     "detail": "Buying Your First Home, I Will Teach You To Be Rich, Wealthier — a Finance wave that appears once and never before. Someone getting financially settled."},
+    {"year": "2025", "icon": "👶", "label": "First child on the way",
+     "detail": "Seven parenting/pregnancy books: The Expectant Father, Mayo Clinic Guide to a Healthy Pregnancy, Heading Home With Your Newborn, and more. The bibliography announces a baby."},
+]
+
+LAYERS = [
+    {
+        "name": "Layer 1 — The Bedrock",
+        "color": "#7c6af7",
+        "description": "Two constants present in virtually every year since the beginning. They don't wave — they are the floor.",
+        "items": [
+            {"genre": "Fantasy", "note": "Present every year 2001–2026. When nothing else is going on, this is who they are. Consumed in long, completist series runs: all 32 Dresden Files, all 16 Malazan books, the full Witcher, full Alex Verus. Not casual reading — a deep, structural appetite."},
+            {"genre": "History", "note": "The second constant, often misread as a wave because its *subject* changes. It was always there. The migration to the US just redirected it from Roman/European/Argentine history toward American founding history — same hunger, different menu. 133 books total, second only to Fantasy."},
+        ]
+    },
+    {
+        "name": "Layer 2 — The Evolving Spine",
+        "color": "#56cfb2",
+        "description": "The career track. Never disappears but transforms with each professional stage.",
+        "items": [
+            {"genre": "Economics (2009–2015)", "note": "Begins with undergraduate formation at UNC Córdoba, Austrian-school flavored (Hayek, Mises, Bastiat). Grows into graduate-level international trade economics (MIT, Princeton texts, 2019). Then a decisive pivot."},
+            {"genre": "Antitrust & Law (2020–present)", "note": "Railroad economics, port economics, antitrust law, Posner, Epstein, the Supreme Court term reviewed every single year. This is litigation/expert-witness economics — the specialty that defines the career. Winning at Deposition (2025) closes the loop."},
+        ]
+    },
+    {
+        "name": "Layer 3 — The Waves",
+        "color": "#f7a76c",
+        "description": "Four archetypes of episodic reading. Each wave is legible as a life event or emotional state.",
+        "items": [
+            {"genre": "Completist binges", "note": "When something clicks, it gets consumed entirely. Anne Perry Victorian mysteries (2007, 8 books). Complete Sherlock Holmes (2017, all 9 volumes). Complete Lovecraft (2018, 4 volumes including the Barnes & Noble collected editions — first US bookstore signal). Connelly + Christie + Chesterton + Rowling/Galbraith (2022–2024, 25 books). The same muscle that finishes the Dresden Files also finishes detective series."},
+            {"genre": "Geographic imprinting", "note": "Reads deeply into wherever he is or recently was. Argentine politics books peak right before emigrating (2015–2016, Macri/Cambiemos). A Barcelona-specific art wave (Gaudí, Park Güell, Sagrada Família — all Catalan publishers) suggests time in Catalonia around 2011–2012. American founding history arrives precisely with the US migration (2019) and runs for three years. The library is partly a travel diary."},
+            {"genre": "New hobby announcements", "note": "Hobbies arrive loud and bibliographically unmistakable. Piano (2021: Faber Adult Piano Adventures, How to Listen to and Understand Great Music). D&D (2021: 12 manuals in a single year — lockdown campaign). Stargazing (2023: five books including the two classic amateur astronomy guides, Turn Left at Orion and Binocular Highlights). BBQ (2024: Franklin Barbecue and Meathead — the two canonical texts of serious American barbecue)."},
+            {"genre": "Intellectual mood clusters", "note": "Ideology-coherent reading bursts. A center-right social commentary wave in 2020 (Sowell x2, Steele x2, McWhorter, Pinker) — likely a response to that year's events. A literary sci-fi thread 2017–2019 (Gene Wolfe, Alastair Reynolds, Jack Vance — thoughtful, not pulpy). The complete Borges in Spanish across 2021–2022 — 30 books, almost all poetry and fiction, read during COVID lockdown. The most emotionally transparent wave in the whole list: homesickness rendered as bibliography."},
+        ]
+    },
+]
+
 # ── Build data blob ────────────────────────────────────────────────────────────
 data_blob = {
     "years": years_sorted,
@@ -252,6 +331,12 @@ data_blob = {
     "series_data": series_data[:25],
     "table_data": table_data,
     "recs": RECS,
+    "milestones": MILESTONES,
+    "layers": LAYERS,
+    "lang_years": lang_years,
+    "lang_es": lang_es,
+    "lang_en": lang_en,
+    "lang_pct_es": lang_pct_es,
     "stats": {
         "total_main": total_main_books,
         "total_all": total_all_books,
@@ -363,6 +448,27 @@ HTML = f"""<!DOCTYPE html>
     padding:.28rem .7rem;border-radius:6px;cursor:pointer;font-size:.8rem}}
   .pagination button.active{{background:var(--accent);color:#fff;border-color:var(--accent)}}
   .pagination button:hover:not(.active){{border-color:var(--accent);color:var(--text)}}
+
+  /* Profile / Timeline */
+  .timeline{{display:flex;flex-direction:column;gap:0;position:relative;padding-left:2rem}}
+  .timeline::before{{content:'';position:absolute;left:.5rem;top:0;bottom:0;width:2px;background:var(--border)}}
+  .tl-item{{position:relative;padding:.75rem 0 .75rem 1.5rem;}}
+  .tl-item::before{{content:'';position:absolute;left:-.85rem;top:1rem;width:10px;height:10px;
+    border-radius:50%;background:var(--accent);border:2px solid var(--bg)}}
+  .tl-item.milestone::before{{background:var(--accent3);width:14px;height:14px;left:-1.05rem}}
+  .tl-year{{font-size:.78rem;color:var(--accent3);font-weight:600;margin-bottom:.1rem}}
+  .tl-label{{font-size:.92rem;font-weight:600}}
+  .tl-detail{{font-size:.8rem;color:var(--muted);margin-top:.2rem;max-width:700px}}
+  .tl-icon{{margin-right:.4rem}}
+
+  .layer-card{{background:var(--surface);border:1px solid var(--border);border-radius:12px;
+    padding:1.25rem 1.5rem;margin-bottom:1.25rem}}
+  .layer-card h4{{font-size:1rem;font-weight:700;margin-bottom:.35rem}}
+  .layer-desc{{font-size:.82rem;color:var(--muted);margin-bottom:1rem}}
+  .layer-items{{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:.875rem}}
+  .layer-item{{background:var(--surface2);border-radius:8px;padding:.875rem}}
+  .layer-item-genre{{font-weight:600;font-size:.88rem;margin-bottom:.3rem}}
+  .layer-item-note{{font-size:.79rem;color:var(--muted);line-height:1.55}}
 </style>
 </head>
 <body>
@@ -382,6 +488,7 @@ HTML = f"""<!DOCTYPE html>
   <button onclick="showPage('authors',this)">Authors &amp; Series</button>
   <button onclick="showPage('recs',this)">Recommendations</button>
   <button onclick="showPage('library',this)">Library</button>
+  <button onclick="showPage('profile',this)">Reader Profile</button>
 </nav>
 
 <!-- OVERVIEW -->
@@ -472,6 +579,31 @@ HTML = f"""<!DOCTYPE html>
     </ul>
   </div>
   <div class="rec-grid" id="rec-grid"></div>
+</div>
+
+<!-- PROFILE -->
+<div class="page" id="page-profile">
+  <div class="insight-box" style="border-color:var(--accent3)">
+    <h3 style="color:var(--accent3)">A portrait drawn from 790 books</h3>
+    <ul>
+      <li>Argentine, male, born ~late 1980s. Bilingual reader who emigrated twice — once to Europe (~2016), once to the United States (~2018–2019).</li>
+      <li>Antitrust / regulatory economist working at the intersection of law and economics — likely litigation support or expert-witness consulting.</li>
+      <li>Intellectual profile: libertarian-leaning economist with strong historical curiosity, completist fantasy reader, and a permanent emotional anchor to Argentine literature.</li>
+      <li>Life in 2025–2026: new home, first child on the way. The bibliography knows before you announce it.</li>
+    </ul>
+  </div>
+
+  <h3 style="font-size:.95rem;margin-bottom:1rem">Life Milestones</h3>
+  <div id="timeline-container" style="position:relative;margin-bottom:2.5rem"></div>
+
+  <div class="chart-card">
+    <h3>Language Drift — Spanish vs English over time</h3>
+    <div id="ch-lang" style="height:300px"></div>
+    <p class="note">Spanish-language reading drops sharply around the first migration (~2016–2017) and barely recovers — except for the complete Borges read in 2021–2022, the most legible homesickness signal in the dataset.</p>
+  </div>
+
+  <h3 style="font-size:.95rem;margin:1.5rem 0 1rem">The Three-Layer Framework</h3>
+  <div id="layers-container"></div>
 </div>
 
 <!-- LIBRARY -->
@@ -669,6 +801,65 @@ function buildCharts(page) {{
         <div class="r-title">${{r.title}}</div>
         <div class="r-author">by ${{r.author}}</div>
         <div class="r-why">${{r.why}}</div>
+      </div>`).join('');
+  }}
+
+  if (page === 'profile') {{
+    // Timeline
+    const tc = document.getElementById('timeline-container');
+    tc.innerHTML = '<div class="timeline">' + D.milestones.map(m => `
+      <div class="tl-item milestone">
+        <div class="tl-year">${{m.year}}</div>
+        <div class="tl-label"><span class="tl-icon">${{m.icon}}</span>${{m.label}}</div>
+        <div class="tl-detail">${{m.detail}}</div>
+      </div>`).join('') + '</div>';
+
+    // Language drift chart — stacked bar ES / EN + pct line
+    Plotly.newPlot('ch-lang', [
+      {{x:D.lang_years, y:D.lang_es, type:'bar', name:'Spanish',
+        marker:{{color:'#f7a76c',opacity:.85}},
+        hovertemplate:'<b>%{{x}}</b><br>%{{y}} Spanish-title books<extra></extra>'}},
+      {{x:D.lang_years, y:D.lang_en, type:'bar', name:'English',
+        marker:{{color:'#56cfb2',opacity:.85}},
+        hovertemplate:'<b>%{{x}}</b><br>%{{y}} English-title books<extra></extra>'}},
+      {{x:D.lang_years, y:D.lang_pct_es, type:'scatter', mode:'lines+markers',
+        name:'% Spanish', yaxis:'y2',
+        line:{{color:'#7c6af7',width:2,dash:'dot'}}, marker:{{size:5}},
+        hovertemplate:'<b>%{{x}}</b><br>%{{y}}% Spanish<extra></extra>'}},
+    ], L({{
+      barmode:'stack', showlegend:true,
+      legend:{{bgcolor:'transparent',bordercolor:'#2e3250',x:1.08,y:1}},
+      yaxis:{{title:'Books',gridcolor:'#2e3250'}},
+      yaxis2:{{title:'% Spanish',overlaying:'y',side:'right',range:[0,80],
+        gridcolor:'#2e3250',showgrid:false,ticksuffix:'%'}},
+      margin:{{t:15,r:80,b:40,l:50}},
+      shapes:[
+        {{type:'line',x0:2016.5,x1:2016.5,y0:0,y1:1,yref:'paper',
+          line:{{color:'#7c6af7',dash:'dot',width:1}}}},
+        {{type:'line',x0:2018.5,x1:2018.5,y0:0,y1:1,yref:'paper',
+          line:{{color:'#56cfb2',dash:'dot',width:1}}}},
+      ],
+      annotations:[
+        {{x:2016.5,y:.97,yref:'paper',text:'Migration 1',showarrow:false,
+          font:{{size:10,color:'#7c6af7'}},xanchor:'left',bgcolor:'transparent'}},
+        {{x:2018.5,y:.88,yref:'paper',text:'Migration 2',showarrow:false,
+          font:{{size:10,color:'#56cfb2'}},xanchor:'left',bgcolor:'transparent'}},
+      ],
+    }}), CFG);
+
+    // Layer cards
+    const lc = document.getElementById('layers-container');
+    lc.innerHTML = D.layers.map(layer => `
+      <div class="layer-card" style="border-left:4px solid ${{layer.color}}">
+        <h4 style="color:${{layer.color}}">${{layer.name}}</h4>
+        <div class="layer-desc">${{layer.description}}</div>
+        <div class="layer-items">
+          ${{layer.items.map(item => `
+            <div class="layer-item" style="border-left:2px solid ${{layer.color}}40">
+              <div class="layer-item-genre" style="color:${{layer.color}}">${{item.genre}}</div>
+              <div class="layer-item-note">${{item.note}}</div>
+            </div>`).join('')}}
+        </div>
       </div>`).join('');
   }}
 
